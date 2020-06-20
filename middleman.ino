@@ -2,9 +2,9 @@
 #include <Servo.h>
 
 //transmitter pins
-#define front_back_stick A9
-#define left_right_stick A10
-#define front_shift_stick A11
+#define front_back_stick A6
+#define left_right_stick A5
+#define front_shift_stick A4
 
 //motor driver 1
 #define dirA1 23
@@ -77,7 +77,7 @@ void loop()
             }
             if (front_back > upper_stick_threshold)
             {
-            forward(max_speed);
+            forward(maxspeed);
             Serial.println("forward");
             }
             if (front_back < lower_stick_threshold) 
@@ -104,7 +104,7 @@ void loop()
             }
             if (front_back > upper_stick_threshold)
             {
-            backward(max_speed);
+            backward(maxspeed);
             Serial.println("forward");
             }
             if (front_back < lower_stick_threshold) 
@@ -124,12 +124,12 @@ void loop()
             }
     break;
   }
-oldstate=slidestate;
+oldstate=newstate;
 }
 
 void forward(int a)
 { digitalWrite(dirA1, LOW);
-  analogWrite(pwA, a);
+  analogWrite(pwA1, a);
   digitalWrite(dirB1, LOW);
   analogWrite(pwB1, a);
   digitalWrite(brkA1, LOW);
