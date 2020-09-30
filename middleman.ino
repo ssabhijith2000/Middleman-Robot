@@ -1,39 +1,56 @@
-
 #include <Servo.h>
 
 //transmitter pins
-#define front_back_stick A6
-#define left_right_stick A5
-#define front_shift_stick A4
+#define front_back_stick A6 //ch1
+#define left_right_stick A5 //ch2
+#define front_shift_stick A4 //ch3
+const int voltageSensor = A7;//voltage sensor
 
 //motor driver 1
 #define dirA1 23
-#define pwA1 25
-#define dirB1 26
-#define pwB1 28
-#define brkA1 29
+#define pwA1 4 
+#define dirB1 25
+#define pwB1 5
+#define brkA1 27
 #define brkB1 29
 
 //motor driver 2
-#define dirA2 30
-#define pwA2 31
-#define dirB2 21
-#define pwB2 33
-#define brkA2 34
-#define brkB2 29
+#define dirA2 22
+#define pwA2 6
+#define dirB2 24
+#define pwB2 7
+#define brkA2 26
+#define brkB2 28
+
+//charge pins
+#define led1 30
+#define led2 31
+#define led3 32
+#define led4 33
 Servo myservo; 
 
 //thresholds
-int upper_stick_threshold=1500;
+int upper_stick_threshold=1800; //servo stick
 int lower_stick_threshold=1300;
-int maxspeed=100;
+int upperf_stick_threshold=1600;//joystick
+int lowerf_stick_threshold=1400;
+int maxspeed=100; //change this to adjust maximum rpm 
 
 //initialisations
 int oldstate =0;
 int newstate = 0; 
+float vOUT = 0.0;
+float vIN = 0.0;
+float R1 = 30000.0;
+float R2 = 7500.0;
+int value = 0;
+
+int lrmap;
+int fbmap;
 
 void setup()
 {
+  Serial.begin(9600);
   pinMode(dirA1, OUTPUT);
   pinMode(dirB1, OUTPUT);
   pinMode(dirA2, OUTPUT);
@@ -46,15 +63,58 @@ void setup()
   pinMode(brkB1, OUTPUT);
   pinMode(brkA2, OUTPUT);
   pinMode(brkB2, OUTPUT);
+pinMode(led1, OUTPUT);
+pinMode(led2, OUTPUT);
+pinMode(led3, OUTPUT);
+pinMode(led4, OUTPUT);
+pinMode(voltageSensor,INPUT);
+for(int j=0; j<3; j++)
+{ int i=5;
+  for(i=5; i>=2; i--)
+  {
+    digitalWrite(i, HIGH);
+    delay(200);
+    digitalWrite(i, LOW);
+  }
+  digitalWrite(i, LOW);
+  digitalWrite(i+1, LOW);
+  digitalWrite(i+2, LOW);
+  digitalWrite(i+3, LOW);
+}
   Serial.begin(9600);
-  myservo.attach(6);
+  myservo.attach(3); //servo pin
+  brake(20);
 }
 
 void loop()
 {
- int front_back = (pulseIn (front_back_stick, HIGH));  // Checks the value of front_back
+  bat();
+  int front_back =pulseIn (front_back_stick, HIGH); 
+   if(front_back>upperf_stick_threshold)
+  {
+ fbmap=map(front_back,upperf_stick_threshold,1950,0,maxspeed);
+ }
+ if(front_back<lowerf_stick_threshold)
+ {
+   fbmap=map(front_back,lowerf_stick_threshold,990,0,maxspeed);
+ }
+ delay(10);// Checks the value of front_back
+ //Serial.print(front_back);
+// Serial.print("     "); 
  int left_right = (pulseIn (left_right_stick, HIGH));
+ if(left_right>upperf_stick_threshold)
+ {
+  lrmap=map(left_right,upperf_stick_threshold,1950,0,maxspeed);
+ }
+ if(left_right<lowerf_stick_threshold)
+ {
+   lrmap=map(left_right,lowerf_stick_threshold,980,0,maxspeed);
+ }
+// Serial.print(left_right);
  int front_shift = (pulseIn (front_shift_stick, HIGH));
+ //Serial.print("     "); 
+// Serial.println(front_shift);
+ 
  
  //digital conversion of analog input of shift switch
  if (front_shift>upper_stick_threshold)
@@ -72,63 +132,84 @@ void loop()
     case 1:
             if(newstate!=oldstate)
             {
+                Serial.println("Servo at 0 degree");
                 myservo.write(0);
                 delay(2000);
             }
-            if (front_back > upper_stick_threshold)
+            if (front_back==0 || left_right==0)
             {
-            forward(maxspeed);
-            Serial.println("forward");
+              brake(20);
             }
-            if (front_back < lower_stick_threshold) 
+            else if (front_back > upperf_stick_threshold && left_right < upperf_stick_threshold && left_right> lowerf_stick_threshold)
             {
-            backward(maxspeed);
-            Serial.println("backward");
+            forward(fbmap);
+            //Serial.println("forward");
             }
-            if (left_right > upper_stick_threshold)
+            else if (front_back < lowerf_stick_threshold && left_right < upperf_stick_threshold && left_right> lowerf_stick_threshold) 
             {
-            left(maxspeed);
-            Serial.println("left");
+            backward(fbmap);
+            //Serial.println("backward");
             }
-            if(left_right < lower_stick_threshold)
+            else if (left_right > upperf_stick_threshold)
             {
-            right(maxspeed);
-            Serial.println("right");
+              
+            left(lrmap);
+            //Serial.println("right");
             }
+            else if(left_right < lowerf_stick_threshold)
+            {
+            right(lrmap);
+            //Serial.println("left");
+            }
+            else{
+              brake(20);
+              }
     break;
     case 0:
-            if(newstate!=oldstate)
+            
+            if (front_back==0 || left_right==0)
             {
+              brake(20);
+            }
+            else if(newstate!=oldstate)
+            {
+                Serial.println("Servo at 180 degree");
                 myservo.write(180);
                 delay(2000);
             }
-            if (front_back > upper_stick_threshold)
+            else if (front_back > upperf_stick_threshold && left_right < upperf_stick_threshold && left_right> lowerf_stick_threshold)
             {
-            backward(maxspeed);
-            Serial.println("forward");
+            backward(fbmap);
+           // Serial.println("backward");
             }
-            if (front_back < lower_stick_threshold) 
+            else if (front_back < lowerf_stick_threshold && left_right < upperf_stick_threshold && left_right> lowerf_stick_threshold) 
             {
-            forward(maxspeed);
-            Serial.println("backward");
+            forward(fbmap);
+           // Serial.println("forward");
             }
-            if (left_right > upper_stick_threshold)
+            else if (left_right > upperf_stick_threshold)
             {
-            right(maxspeed);
-            Serial.println("left");
+            left(lrmap);
+            //Serial.println("right");
             }
-            if(left_right < lower_stick_threshold)
+            else if(left_right < lowerf_stick_threshold)
             {
-            left(maxspeed);
-            Serial.println("right");
+            right(lrmap);
+            //Serial.println("left");
             }
+            else{
+              brake(20);
+              }
     break;
   }
 oldstate=newstate;
 }
 
 void forward(int a)
-{ digitalWrite(dirA1, LOW);
+{ 
+ // Serial.print("forward  ");
+ // Serial.println(a);
+  digitalWrite(dirA1, LOW);
   analogWrite(pwA1, a);
   digitalWrite(dirB1, LOW);
   analogWrite(pwB1, a);
@@ -143,7 +224,11 @@ void forward(int a)
 }
 
 void backward(int a)
-{ digitalWrite(dirA1, HIGH);
+{
+  
+  // Serial.print("backward  ");
+  // Serial.println(a);
+  digitalWrite(dirA1, HIGH);
   analogWrite(pwA1, a);
   digitalWrite(dirB1, HIGH);
   analogWrite(pwB1, a);
@@ -159,7 +244,10 @@ void backward(int a)
   }
 
 void left(int a)
-{ digitalWrite(dirA1, HIGH);
+{   
+//  Serial.print("left  ");
+//  Serial.println(a);
+  digitalWrite(dirA1, HIGH);
   analogWrite(pwA1, a);
   digitalWrite(dirB1, LOW);
   analogWrite(pwB1, a);
@@ -174,7 +262,10 @@ void left(int a)
 }
 
 void right(int a)
-{ digitalWrite(dirA1, LOW);
+{ 
+ // Serial.print("right  ");
+//  Serial.println(a);
+  digitalWrite(dirA1, LOW);
   analogWrite(pwA1, a);
   digitalWrite(dirB1, HIGH);
   analogWrite(pwB1, a);
@@ -189,7 +280,10 @@ void right(int a)
 }
 
 void brake(int a)
-{digitalWrite(dirA1, LOW);
+{
+ // Serial.print("brake  ");
+// Serial.println(a);
+  digitalWrite(dirA1, LOW);
  analogWrite(pwA1, 0);
  digitalWrite(dirB1, LOW);
  analogWrite(pwB1, 0);
@@ -201,4 +295,43 @@ void brake(int a)
  analogWrite(pwB2, 0);
  digitalWrite(brkA2, HIGH);
  digitalWrite(brkB2, HIGH);
+}
+
+void bat()
+{
+  value = analogRead(voltageSensor);
+  vOUT = (value * 5.0) / 1024.0;
+  vIN = vOUT / (R2/(R1+R2));
+  delay(500);
+  float  b = map(vIN, 8.5, 14.6, 0, 100); //vIN
+  // Serial.println(b);
+  if(b < 20)
+  {
+   digitalWrite(led4, HIGH);
+    digitalWrite(led3, LOW);
+    digitalWrite(led2, LOW);
+    digitalWrite(led1, LOW); 
+  }
+  if(b>20 && b<50)
+  {
+   digitalWrite(led4, HIGH);
+   digitalWrite(led3, HIGH);
+   digitalWrite(led2, LOW);
+   digitalWrite(led1, LOW);
+ 
+  }
+  if(b>50 && b<80)
+  {
+   digitalWrite(led4, HIGH);
+   digitalWrite(led3, HIGH);
+   digitalWrite(led2, HIGH);
+   digitalWrite(led1, LOW);
+  }
+  if(b>80 && b<=100)
+  {
+   digitalWrite(led4, HIGH);
+   digitalWrite(led3, HIGH);
+   digitalWrite(led2, HIGH);
+   digitalWrite(led1, HIGH);
+   }
 }
