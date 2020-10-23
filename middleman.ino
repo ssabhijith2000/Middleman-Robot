@@ -34,8 +34,8 @@ int upper_stick_threshold=1800; //servo stick
 int lower_stick_threshold=1300;
 int upperf_stick_threshold=1600;//joystick
 int lowerf_stick_threshold=1400;
-int maxspeed=225; //change this to adjust maximum rpm 
-
+int maxspeed=250; //change this to adjust maximum rpm 
+int maxspeedlr=100;
 //initialisations
 int oldstate =0;
 int newstate = 0; 
@@ -111,11 +111,11 @@ void loop()
   Serial.print("  right");
  if(left_right>upperf_stick_threshold)
  {
-  lrmap=map(left_right,upperf_stick_threshold,1950,0,maxspeed);
+  lrmap=map(left_right,upperf_stick_threshold,1950,0,maxspeedlr);
  }
  if(left_right<lowerf_stick_threshold)
  {
-   lrmap=map(left_right,lowerf_stick_threshold,980,0,maxspeed);
+   lrmap=map(left_right,lowerf_stick_threshold,980,0,maxspeedlr);
  }
 // Serial.print(left_right);
  int front_shift = (pulseIn (front_shift_stick, HIGH));
@@ -140,7 +140,7 @@ void loop()
   {
     case 1:
             if(newstate!=oldstate)
-            {
+            {   brake(20);
                 Serial.println("Servo at 0 degree");
                   if(pos==180)
                   {
@@ -193,6 +193,7 @@ void loop()
             }
             else if(newstate!=oldstate)
             {
+                brake(20);
                 Serial.println("Servo at 180 degree");
                 if(pos==0)
                   {
@@ -326,6 +327,23 @@ void brake(int a)
  digitalWrite(dirB2, LOW);
  analogWrite(pwB2, 0);
  delay(500);
+ digitalWrite(brkA1, HIGH);
+ digitalWrite(brkB1, HIGH);
+  digitalWrite(brkA2, HIGH);
+ digitalWrite(brkB2, HIGH);
+}
+void brakehard(int a)
+{
+  //Serial.print("brake  ");
+// Serial.println(a);
+  digitalWrite(dirA1, LOW);
+ analogWrite(pwA1, 0);
+ digitalWrite(dirB1, LOW);
+ analogWrite(pwB1, 0);
+  digitalWrite(dirA2, LOW);
+ analogWrite(pwA2, 0);
+ digitalWrite(dirB2, LOW);
+ analogWrite(pwB2, 0);
  digitalWrite(brkA1, HIGH);
  digitalWrite(brkB1, HIGH);
   digitalWrite(brkA2, HIGH);
