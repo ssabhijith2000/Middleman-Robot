@@ -83,12 +83,13 @@ for(int j=0; j<3; j++)
   digitalWrite(i+2, LOW);
   digitalWrite(i+3, LOW);
 }
+bat();
   Serial.begin(9600);
   myservo.attach(12); //servo pin
   myservo.write(0);
   pos=0;
   brake(20);
-  bat();
+  
 }
 
 void loop()
@@ -171,6 +172,7 @@ void loop()
             }
             if (front_back==0 || left_right==0)
             {
+              bat();
               brake(20);
             }            
             else if(newstatelr!=oldstatelr && newstatelr!=0)
@@ -233,12 +235,13 @@ void loop()
             }
             if (front_back==0 || left_right==0)
             {
+              bat();
               brake(20);
             }  
             else if(newstatelr!=oldstatelr && newstatelr!=0)
             {
               brakehard(20);
-              Serial.println("braking left");
+              //Serial.println("braking left");
               delay(50);
             }
             else if (front_back > upperf_stick_threshold && left_right < upperf_stick_threshold && left_right> lowerf_stick_threshold)
@@ -262,8 +265,9 @@ void loop()
             //Serial.println("left");
             }
              else{
-              brake(20);
               bat();
+              brake(20);
+              
               }
     break;
   }
