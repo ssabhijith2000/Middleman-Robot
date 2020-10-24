@@ -39,6 +39,8 @@ int maxspeedlr=100;
 //initialisations
 int oldstate =0;
 int newstate = 0; 
+int oldstatelr=0;
+int newstatelr=0;
 float vOUT = 0.0;
 float vIN = 0.0;
 float R1 = 30000.0;
@@ -92,35 +94,35 @@ for(int j=0; j<3; j++)
 void loop()
 {
    int front_back =pulseIn (front_back_stick, HIGH); 
-   Serial.println(front_back); 
-    Serial.print("  front");
+   //Serial.println(front_back); 
+    //Serial.print("  front");
    
    if(front_back>upperf_stick_threshold)
   {
- fbmap=map(front_back,upperf_stick_threshold,1950,0,maxspeed);
+ fbmap=map(front_back,upperf_stick_threshold,2000,0,maxspeed);
  }
  if(front_back<lowerf_stick_threshold)
  {
-   fbmap=map(front_back,lowerf_stick_threshold,990,0,maxspeed);
+   fbmap=map(front_back,lowerf_stick_threshold,980,0,maxspeed);
  }
  delay(10);// Checks the value of front_back
  //Serial.print(front_back);
 // Serial.print("     "); 
  int left_right = (pulseIn (left_right_stick, HIGH));
- Serial.print(left_right);
-  Serial.print("  right");
+ //Serial.print(left_right);
+  //Serial.print("  right");
  if(left_right>upperf_stick_threshold)
  {
-  lrmap=map(left_right,upperf_stick_threshold,1950,0,maxspeedlr);
+  lrmap=map(left_right,upperf_stick_threshold+100,1950,0,maxspeedlr);
  }
  if(left_right<lowerf_stick_threshold)
  {
-   lrmap=map(left_right,lowerf_stick_threshold,980,0,maxspeedlr);
+   lrmap=map(left_right,lowerf_stick_threshold-100,980,0,maxspeedlr);
  }
 // Serial.print(left_right);
  int front_shift = (pulseIn (front_shift_stick, HIGH));
-  Serial.print(front_shift);
-  Serial.print("  front_shift");
+  //Serial.print(front_shift);
+  //Serial.print("  front_shift");
  //Serial.print("     "); 
 // Serial.println(front_shift);
  
@@ -134,7 +136,19 @@ void loop()
  {
      newstate=0;
  }
- 
+ if (left_right>upperf_stick_threshold+100)
+ {
+   newstatelr=4;
+ }
+ if (left_right<lowerf_stick_threshold-100)
+ {
+   newstatelr=3;
+ }
+ if (left_right>lowerf_stick_threshold && left_right<upperf_stick_threshold )
+ {
+   newstatelr=0;
+ }
+ Serial.println(newstatelr);
  //code switching based on shift switch input
  switch(newstate)
   {
@@ -158,7 +172,14 @@ void loop()
             if (front_back==0 || left_right==0)
             {
               brake(20);
+            }            
+            else if(newstatelr!=oldstatelr && newstatelr!=0)
+            {
+              brakehard(20);
+              Serial.println("braking left");
+              delay(50);
             }
+
             else if (front_back > upperf_stick_threshold && left_right < upperf_stick_threshold && left_right> lowerf_stick_threshold)
             {
             forward(fbmap);
@@ -169,13 +190,13 @@ void loop()
             backward(fbmap);
             //Serial.println("backward");
             }
-            else if (left_right > upperf_stick_threshold)
+            else if (left_right > upperf_stick_threshold+100)
             {
               
             right(lrmap);
             //Serial.println("right");
             }
-            else if(left_right < lowerf_stick_threshold)
+            else if(left_right < lowerf_stick_threshold-100)
             {
             left(lrmap);
             //Serial.println("left");
@@ -191,7 +212,7 @@ void loop()
             {
               brake(20);
             }
-            else if(newstate!=oldstate)
+            if(newstate!=oldstate)
             {
                 brake(20);
                 Serial.println("Servo at 180 degree");
@@ -210,6 +231,16 @@ void loop()
                   }
                   
             }
+            if (front_back==0 || left_right==0)
+            {
+              brake(20);
+            }  
+            else if(newstatelr!=oldstatelr && newstatelr!=0)
+            {
+              brakehard(20);
+              Serial.println("braking left");
+              delay(50);
+            }
             else if (front_back > upperf_stick_threshold && left_right < upperf_stick_threshold && left_right> lowerf_stick_threshold)
             {
             backward(fbmap);
@@ -220,12 +251,12 @@ void loop()
             forward(fbmap);
            // Serial.println("forward");
             }
-            else if (left_right > upperf_stick_threshold)
+            else if (left_right > upperf_stick_threshold+100)
             {
             right(lrmap);
             //Serial.println("right");
             }
-            else if(left_right < lowerf_stick_threshold)
+            else if(left_right < lowerf_stick_threshold-100)
             {
             left(lrmap);
             //Serial.println("left");
@@ -237,6 +268,7 @@ void loop()
     break;
   }
 oldstate=newstate;
+oldstatelr=newstatelr;
 }
 
 void forward(int a)
