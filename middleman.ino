@@ -97,16 +97,17 @@ bat();
 void loop()
 {
    int front_back =pulseIn (front_back_stick, HIGH); 
-   //Serial.println(front_back); 
+   Serial.println(front_back); 
+   
     //Serial.print("  front");
    
    if(front_back>upperf_stick_threshold)
   {
- fbmap=map(front_back,upperf_stick_threshold,2000,0,maxspeed);
+ fbmap=map(front_back,upperf_stick_threshold,1950,0,maxspeed);
  }
  if(front_back<lowerf_stick_threshold)
  {
-   fbmap=map(front_back,lowerf_stick_threshold,980,0,maxspeed);
+   fbmap=map(front_back,lowerf_stick_threshold,950,0,maxspeed);
  }
  delay(10);// Checks the value of front_back
  //Serial.print(front_back);
@@ -122,7 +123,8 @@ void loop()
  {
    lrmap=map(left_right,lowerf_stick_threshold-100,980,0,maxspeedlr);
  }
-// Serial.print(left_right);
+ 
+ Serial.print(left_right);
  int front_shift = (pulseIn (front_shift_stick, HIGH));
   //Serial.print(front_shift);
   //Serial.print("  front_shift");
@@ -384,7 +386,7 @@ void brake(int a)
  analogWrite(pwA2, 0);
  digitalWrite(dirB2, LOW);
  analogWrite(pwB2, 0);
- delay(500);
+ delay(250);
  digitalWrite(brkA1, HIGH);
  digitalWrite(brkB1, HIGH);
   digitalWrite(brkA2, HIGH);
