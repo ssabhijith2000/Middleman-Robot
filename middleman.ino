@@ -41,6 +41,8 @@ int oldstate =0;
 int newstate = 0; 
 int oldstatelr=0;
 int newstatelr=0;
+int oldstatefb=0;
+int newstatefb=0;
 float vOUT = 0.0;
 float vIN = 0.0;
 float R1 = 30000.0;
@@ -145,9 +147,17 @@ void loop()
  {
    newstatelr=3;
  }
- if (left_right>lowerf_stick_threshold && left_right<upperf_stick_threshold )
+ if (left_right>lowerf_stick_threshold-100 && left_right<upperf_stick_threshold+100 )
  {
    newstatelr=0;
+ }
+ if (front_back<lowerf_stick_threshold)
+ {
+  newstatefb=0;
+ }
+ if (front_back>upperf_stick_threshold)
+ {
+  newstatefb=1;
  }
  Serial.println(newstatelr);
  //code switching based on shift switch input
@@ -181,6 +191,12 @@ void loop()
               Serial.println("braking left");
               delay(50);
             }
+            else if(newstatefb!=oldstatefb)
+            {
+              brake(20);
+              Serial.println("braking left");
+            }
+            
 
             else if (front_back > upperf_stick_threshold && left_right < upperf_stick_threshold && left_right> lowerf_stick_threshold)
             {
@@ -244,6 +260,11 @@ void loop()
               //Serial.println("braking left");
               delay(50);
             }
+            else if(newstatefb!=oldstatefb)
+            {
+              brake(20);
+              Serial.println("braking left");
+            }
             else if (front_back > upperf_stick_threshold && left_right < upperf_stick_threshold && left_right> lowerf_stick_threshold)
             {
             backward(fbmap);
@@ -273,6 +294,7 @@ void loop()
   }
 oldstate=newstate;
 oldstatelr=newstatelr;
+oldstatefb=newstatefb;
 }
 
 void forward(int a)
@@ -392,7 +414,7 @@ void bat()
   vOUT = (value * 5.0) / 1024.0;
   vIN = vOUT / (R2/(R1+R2));
   delay(100);
-  float  b = map(vIN, 8.5, 14.6, 0, 100); //vIN
+  float  b = map(vIN, 8.5, 13.6, 0, 100); //vIN
    //Serial.println(b);
   if(b < 20)
   {
