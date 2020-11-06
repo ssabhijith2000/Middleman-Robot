@@ -34,7 +34,7 @@ int upper_stick_threshold=1800; //servo stick
 int lower_stick_threshold=1300;
 int upperf_stick_threshold=1600;//joystick
 int lowerf_stick_threshold=1400;
-int maxspeed=250; //change this to adjust maximum rpm 
+int maxspeed=200; //change this to adjust maximum rpm 
 int maxspeedlr=100;
 //initialisations
 int oldstate =0;
@@ -103,28 +103,28 @@ void loop()
    
    if(front_back>upperf_stick_threshold)
   {
- fbmap=map(front_back,upperf_stick_threshold,1950,0,maxspeed);
+ fbmap=map(front_back,upperf_stick_threshold,2050,0,maxspeed);
  }
  if(front_back<lowerf_stick_threshold)
  {
-   fbmap=map(front_back,lowerf_stick_threshold,950,0,maxspeed);
+   fbmap=map(front_back,lowerf_stick_threshold,920,0,maxspeed);
  }
  delay(10);// Checks the value of front_back
- //Serial.print(front_back);
-// Serial.print("     "); 
+ Serial.print(front_back);
+Serial.print("     "); 
  int left_right = (pulseIn (left_right_stick, HIGH));
- //Serial.print(left_right);
+ Serial.print(left_right);
   //Serial.print("  right");
  if(left_right>upperf_stick_threshold)
  {
-  lrmap=map(left_right,upperf_stick_threshold+100,1950,0,maxspeedlr);
+  lrmap=map(left_right,upperf_stick_threshold+100,2050,0,maxspeedlr);
  }
  if(left_right<lowerf_stick_threshold)
  {
-   lrmap=map(left_right,lowerf_stick_threshold-100,980,0,maxspeedlr);
+   lrmap=map(left_right,lowerf_stick_threshold-100,920,0,maxspeedlr);
  }
  
- Serial.print(left_right);
+ //Serial.print(left_right);
  int front_shift = (pulseIn (front_shift_stick, HIGH));
   //Serial.print(front_shift);
   //Serial.print("  front_shift");
