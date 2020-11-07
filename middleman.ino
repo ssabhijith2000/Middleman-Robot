@@ -35,7 +35,7 @@ int lower_stick_threshold=1300;
 int upperf_stick_threshold=1600;//joystick
 int lowerf_stick_threshold=1400;
 int maxspeed=200; //change this to adjust maximum rpm 
-int maxspeedlr=100;
+int maxspeedlr=150;
 //initialisations
 int oldstate =0;
 int newstate = 0; 
@@ -43,12 +43,10 @@ int oldstatelr=0;
 int newstatelr=0;
 int oldstatefb=0;
 int newstatefb=0;
-float vOUT = 0.0;
+double vOUT = 0.0;
 float vIN = 0.0;
-float R1 = 30000.0;
-float R2 = 7500.0;
 int value = 0;
-
+int voltageoffset=22;
 int lrmap;
 int fbmap;
 int pos=0;
@@ -96,6 +94,23 @@ bat();
 
 void loop()
 {
+    if(vOUT<1200)
+  {
+    maxspeed=0;
+    maxspeedlr=0;
+  }
+  else if (vOUT>=1200 && vOUT <1230)
+  {
+    maxspeed=100;
+    maxspeedlr=100;
+    
+  }
+  else if (vOUT>=1230)
+  {
+    maxspeed=250;
+    maxspeedlr=150;
+
+  }
    int front_back =pulseIn (front_back_stick, HIGH); 
    Serial.println(front_back); 
    
@@ -222,14 +237,15 @@ Serial.print("     ");
             //Serial.println("left");
             }
             else{
-              brake(20);
               bat();
-              }
+              brake(20);
+                }
     break;
     case 0:
             
             if (front_back==0 && left_right==0)
             {
+              bat();
               brake(20);
             }
             if(newstate!=oldstate)
@@ -409,23 +425,28 @@ void brakehard(int a)
   digitalWrite(brkA2, HIGH);
  digitalWrite(brkB2, HIGH);
 }
-
 void bat()
 {
   value = analogRead(voltageSensor);
-  vOUT = (value * 5.0) / 1024.0;
-  vIN = vOUT / (R2/(R1+R2));
-  delay(100);
-  float  b = map(vIN, 8.5, 13.6, 0, 100); //vIN
-   //Serial.println(b);
-  if(b < 20)
+  vOUT = map(value,0,1023,0,2500)+voltageoffset;
+ //  delay(100);
+  float  b = map(vOUT, 1200, 1360, 0, 100); //vIN
+   Serial.println(b);
+   if(b<0)
+  {
+   digitalWrite(led1, LOW);
+    digitalWrite(led2, LOW);
+    digitalWrite(led3, LOW);
+    digitalWrite(led4, LOW); 
+  }
+  if(b >=0 && b<=20)
   {
    digitalWrite(led1, HIGH);
     digitalWrite(led2, LOW);
     digitalWrite(led3, LOW);
     digitalWrite(led4, LOW); 
   }
-  if(b>20 && b<50)
+  if(b>20 && b<=50)
   {
    digitalWrite(led1, HIGH);
    digitalWrite(led2, HIGH);
@@ -433,14 +454,14 @@ void bat()
    digitalWrite(led4, LOW);
  
   }
-  if(b>50 && b<80)
+  if(b>50 && b<=80)
   {
    digitalWrite(led1, HIGH);
    digitalWrite(led2, HIGH);
    digitalWrite(led3, HIGH);
    digitalWrite(led4, LOW);
   }
-  if(b>80 && b<=100)
+  if(b>80)
   {
    digitalWrite(led1, HIGH);
    digitalWrite(led2, HIGH);
